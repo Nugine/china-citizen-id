@@ -4,6 +4,7 @@
 #![deny(clippy::all, clippy::pedantic, clippy::cargo)]
 #![allow(
     clippy::inline_always,
+    clippy::needless_range_loop,
     clippy::missing_errors_doc, // TODO
 )]
 // ---
@@ -32,7 +33,7 @@ impl fmt::Display for Error {
 impl core::error::Error for Error {}
 
 pub struct ParsedIdNumber {
-    id: [u8; 18],
+    sex: Sex,
     birthday: (u16, u8, u8),
     region: Region,
 }
@@ -46,11 +47,7 @@ pub enum Sex {
 impl ParsedIdNumber {
     #[must_use]
     pub fn sex(&self) -> Sex {
-        if self.id[16] & 1 == 1 {
-            Sex::Male
-        } else {
-            Sex::Female
-        }
+        self.sex
     }
 
     #[must_use]
@@ -64,16 +61,7 @@ impl ParsedIdNumber {
     }
 }
 
-impl TryFrom<&str> for ParsedIdNumber {
-    type Error = Error;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        parse(value)
-    }
-}
-
-#[allow(clippy::needless_range_loop)]
-pub fn parse(id_str: &str) -> Result<ParsedIdNumber, Error> {
+pub fn parse_v2(id_str: &str) -> Result<ParsedIdNumber, Error> {
     let id: [u8; 18] = id_str
         .as_bytes()
         .try_into()
@@ -126,8 +114,56 @@ pub fn parse(id_str: &str) -> Result<ParsedIdNumber, Error> {
         get_region(region_code, birthday.0)
     };
 
+    let sex = if id[16] & 1 == 1 {
+        Sex::Male
+    } else {
+        Sex::Female
+    };
+
     Ok(ParsedIdNumber {
-        id,
+        sex,
+        birthday,
+        region,
+    })
+}
+
+pub fn parse_v1(id_str: &str) -> Result<ParsedIdNumber, Error> {
+    let id: [u8; 15] = id_str
+        .as_bytes()
+        .try_into()
+        .map_err(|_| Error::InvalidLength)?;
+
+    for i in 0..15 {
+        if !id[i].is_ascii_digit() {
+            return Err(Error::InvalidCharacter);
+        }
+    }
+
+    let birthday = {
+        let year = u16_from_char4([1, 9, id[6], id[7]]);
+        let month = u8_from_char2([id[8], id[9]]);
+        let day = u8_from_char2([id[10], id[11]]);
+
+        if !validate_ymd(year, month, day) {
+            return Err(Error::InvalidBirthday);
+        }
+
+        (year, month, day)
+    };
+
+    let region = {
+        let region_code = [id[0], id[1], id[2], id[3], id[4], id[5]];
+        get_region(region_code, birthday.0)
+    };
+
+    let sex = if id[14] & 1 == 1 {
+        Sex::Male
+    } else {
+        Sex::Female
+    };
+
+    Ok(ParsedIdNumber {
+        sex,
         birthday,
         region,
     })
@@ -210,21 +246,21 @@ mod tests {
     fn test_parse() {
         {
             let id = "11010519491231002X";
-            let parsed = parse(id).unwrap();
+            let parsed = parse_v2(id).unwrap();
             assert_eq!(parsed.birthday, (1949, 12, 31));
             assert_eq!(parsed.sex(), Sex::Female);
         }
 
         {
             let id = "440524188001010014";
-            let parsed = parse(id).unwrap();
+            let parsed = parse_v2(id).unwrap();
             assert_eq!(parsed.birthday, (1880, 1, 1));
             assert_eq!(parsed.sex(), Sex::Male);
         }
 
         {
             let id = "420111198203251029";
-            let parsed = parse(id).unwrap();
+            let parsed = parse_v2(id).unwrap();
             assert_eq!(parsed.birthday, (1982, 3, 25));
             assert_eq!(parsed.sex(), Sex::Female);
             assert_eq!(parsed.region().province, Some("湖北省"));
