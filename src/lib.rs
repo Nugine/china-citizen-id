@@ -61,6 +61,7 @@ impl ParsedIdNumber {
     }
 }
 
+/// 二代身份证号 (18位)
 pub fn parse_v2(id_str: &str) -> Result<ParsedIdNumber, Error> {
     let id: [u8; 18] = id_str
         .as_bytes()
@@ -127,6 +128,7 @@ pub fn parse_v2(id_str: &str) -> Result<ParsedIdNumber, Error> {
     })
 }
 
+/// 一代身份证号 (15位)
 pub fn parse_v1(id_str: &str) -> Result<ParsedIdNumber, Error> {
     let id: [u8; 15] = id_str
         .as_bytes()
@@ -140,7 +142,7 @@ pub fn parse_v1(id_str: &str) -> Result<ParsedIdNumber, Error> {
     }
 
     let birthday = {
-        let year = u16_from_char4([1, 9, id[6], id[7]]);
+        let year = u16_from_char4([b'1', b'9', id[6], id[7]]);
         let month = u8_from_char2([id[8], id[9]]);
         let day = u8_from_char2([id[10], id[11]]);
 
