@@ -8,7 +8,7 @@ repository = "https://github.com/Nugine/china-citizen-id"
 readme = "README.md"
 documentation = "https://docs.rs/china-citizen-id"
 categories = ["localization", "encoding"]
-keywords = ["china", "chinese", "citizen", "id", "card", "number"]
+keywords = ["china", "chinese", "id", "card", "number"]
 
 [package.metadata.docs.rs]
 all-features = true
