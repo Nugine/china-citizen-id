@@ -1,0 +1,17 @@
+[package]
+name = "china-citizen-id"
+version = "0.0.0"
+edition = "2021"
+description = "China Citizen Identification Number "
+license = "MIT"
+repository = "https://github.com/Nugine/china-citizen-id"
+readme = "README.md"
+documentation = "https://docs.rs/china-citizen-id"
+categories = ["localization", "encoding"]
+keywords = ["china", "chinese", "citizen", "id", "card", "number"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[dependencies]
