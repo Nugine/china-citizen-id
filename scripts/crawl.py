@@ -10,6 +10,7 @@ import requests
 from bs4 import BeautifulSoup
 
 URL_INDEX = {
+    2023: "https://www.mca.gov.cn/mzsj/xzqh/2023/202301xzqh.html",
     2022: "https://www.mca.gov.cn/mzsj/xzqh/2022/202201xzqh.html",
     2021: "https://www.mca.gov.cn/mzsj/xzqh/2021/20211201.html",
     2020: "https://www.mca.gov.cn/mzsj/xzqh/2020/20201201.html",
